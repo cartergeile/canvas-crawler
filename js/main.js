@@ -74,8 +74,8 @@ class Crawler {
   this.render = function () {
     ctx.fillStyle = this.color
     ctx.fillRect(this.x, this.y, this.width, this.height)
+    }
   }
-}
 }
 const player = new Crawler (10, 10 ,16, 16, 'lightsteelblue')
 const ogre = new Crawler (200, 60, 32, 48, '#bada55')
@@ -95,7 +95,7 @@ const movementHandler = (e) => {
   // up = 38, left = 37, down = 40, right = 39
   // by linking these keycodes to a function (codeblock)
   // we can tell them to change the player x or y values
-  console.log('what is e?\n', e.keyCode)
+  //console.log('what is e?\n', e.keyCode)
   // conditional statements if keycode === something do something if keycode === somethingELse do somethingELse
   // could build giant if else for this
   // im going to use switch case instead
@@ -126,6 +126,28 @@ const movementHandler = (e) => {
   }
 }
 
+// COLLISION DETECTION//
+// here, well detect a hit between entities
+// to accurately do this, we need to account for for the entire space that one entity takes up
+// this means using the player x, y, width and height
+// this also means using the ogre x, y, w, h
+const detectHit = () => {
+  // well basically use a big if statement, to be abkle to tell if any of the sides of our hero interact with any of the sides of our ogre
+  if (player.x < ogre.x + ogre.width
+    && player.x + player.width > ogre.x
+    && player.y < ogre.y + ogre.height
+    && player.y + player.height > ogre.y) {
+      console.log('HIT!')
+      console.log('player x-> ', player.x)
+      console.log('player y-> ', player.y)
+      console.log('ogre x -> ', ogre.x)
+      console.log('ogre y -> ', ogre.y)
+      status.textContent = 'We have a hit!'
+    }
+}
+
+
+
 // GAMELOOP //
 // game loop that runs our animation
 // atached to an interval
@@ -136,9 +158,9 @@ const gameLoop = () => {
   // no console logs
   //console.log('the game is running')
   //for testing, its ok to have them, final product shouyld not have them
-  
+  // 
   // to reseble movement, we should clear the old canvas every loop
-  // then instead of drawing a snake because its maintaning all the old positions of our character
+  // then instead of drawing a snake because its maintaning all the old     positions of our character
   // well just see our player square moving
   ctx.clearRect(0, 0, game.width, game.height)
   
