@@ -103,20 +103,24 @@ const movementHandler = (e) => {
   switch (e.keyCode) {
     //move up
     case (87):
+    case (38):
       //moves player up 10px every press
       player.y  -= 10
       // need the break keyword so we can move to another case if necessary
       break
     //move left
     case (65):
+    case (37):
       player.x -= 10
       break
     //move down
     case (83):
+    case (40):
       player.y +=10
       break
     //move right
     case (68):
+    case (39):
       player.x += 10
       break
   }
@@ -132,11 +136,17 @@ const gameLoop = () => {
   // no console logs
   //console.log('the game is running')
   //for testing, its ok to have them, final product shouyld not have them
+  
+  // to reseble movement, we should clear the old canvas every loop
+  // then instead of drawing a snake because its maintaning all the old positions of our character
+  // well just see our player square moving
+  ctx.clearRect(0, 0, game.width, game.height)
+  
   player.render()
   movement.textContent = `${player.x}, ${player.y}`
 
   if (ogre.alive) {
-    ogre.render()
+      ogre.render()
   }
 }
 
