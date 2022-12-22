@@ -1,11 +1,17 @@
+// This is an extension/refactoring of the main branch of this repo
+// more notes and comments are in the code on that branch
+// this version incorporates smoother movement, more open ended collision detection
+// aslo adding a second enemy to face, which creates a new win conditional
+
 // requirements and goals
 // make simple crawler game using canvas that we manipulate in js
 
 // we need two entities, a hero and an ogre
 // hero should move with WASD or ARROW keys(display hero cords)
 // ogre(for now) will be stationary
-// hero and ogre should be able to collide to make something happen
-// when the hero collides with ogre, ogre is removed from the screen, the game stops, sends a message to the user that they have won. 
+// hero and first ogre should be able to collide to make something happen
+// when the hero collides with  first ogre, ogre 1 is removed from the screen, and ogre 2 appears
+//the game stops, sends a message to the user that they have won. 
 
 // first grab our HTML elements for easy reference later
 const game = document.getElementById('canvas')
@@ -30,101 +36,104 @@ game.setAttribute('width', getComputedStyle(game)['width'])
 game.setAttribute('height', getComputedStyle(game)['height'])
 game.height = 360
 
-// console.log('this is game after setting w and h')
-// console.log(game)
-
-// const hero = {
-//   x: 10,
-//   y: 10,
-//   color: 'hotpink',
-//   width: 20,
-//   height: 20,
-//   alive: true,
-//   render: function () {
-//     // we can use built in canvas methods for drawing basic shapes
-//     ctx.fillStyle = this.color
-//     ctx.fillRect(this.x, this.y, this.width, this.height)
-//   }
-
-//}
-
-// const ogre = {
-//   x: 200,
-//   y: 100,
-//   color: 'green',
-//   width: 60,
-//   height: 120,
-//   alive: true,
-//   render: function () {
-//     ctx.fillStyle = this.color
-//     ctx.fillRect(this.x, this.y, this.width, this.height)
-//   }
-// }
 
 //since these two objects are basically  the same, we can cretae a class to keep code DRY
 
-class Crawler {
-  constructor(x , y, width, height, color) {
-  this.x = x 
-  this.y = y 
-  this.width = width 
-  this.height = height
-  this.color = color
-  this.alive = true
-  this.render = function () {
-    ctx.fillStyle = this.color
-    ctx.fillRect(this.x, this.y, this.width, this.height)
+class Ogre {
+    constructor(x , y, width, height, color) {
+      this.x = x 
+      this.y = y 
+      this.width = width 
+      this.height = height
+      this.color = color
+      this.alive = true
+      this.render = function () {
+        ctx.fillStyle = this.color
+        ctx.fillRect(this.x, this.y, this.width, this.height)
     }
   }
 }
-const player = new Crawler (10, 10 ,16, 16, 'lightsteelblue')
-const ogre = new Crawler (200, 60, 32, 48, '#bada55')
+class Hero {
+  constructor(x , y, width, height, color) {
+    this.x = x 
+    this.y = y 
+    this.width = width 
+    this.height = height
+    this.color = color
+    this.alive = true
+    // we need additional props on our hero class to make movement smoother
+    this.speed = 15,
+    // now well add direction, which will be set with our move handler
+    this.direction = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    }
+    // two other methods, tied to key events
+    // one sets the direction, which sends our hero flying in that direction
+    this.setDirection = function (key) {
+      console.log('this is the key in setDirection', key)
+      if (key.toLowerCase() == 'w') {this.direction.up = true }
+      if (key.toLowerCase() == 'a') {this.direction.left = true }
+      if (key.toLowerCase() == 's') {this.direction.down = true }
+      if (key.toLowerCase() == 'd') {this.direction.right = true }
+    }
+    // the other unsets a direction, which stops our hero from moving in that dir
+    this.unsetDirection = function (key) {
+      console.log('this is the key in unsetDirection', key)
+      if (key.toLowerCase() == 'w') {this.direction.up = false }
+      if (key.toLowerCase() == 'a') {this.direction.left = false }
+      if (key.toLowerCase() == 's') {this.direction.down = false }
+      if (key.toLowerCase() == 'd') {this.direction.right = false }
+    }
+    // this is our new movementHandler, well get rid of old one
+    // this will allow us to use the direction property on our hero object
+    this.movePlayer = function () {
+      // send our guy flying in whatever direction is true
+      if (this.direction.up) {
+        this.y -= this.speed
+        // while were tracking movement, lets wall off our game grid
+        if (this.y <= 0) {
+          this.y = 0
+        }
+      }
+      if (this.direction.left) {
+        this.x -= this.speed
+          if (this.x <= 0) {
+            this.x = 0
+          }
+      }
+      if (this.direction.down) {
+        this.y += this.speed
+        // to stop down and right directions, we again need to account for the size of our player
+        if(this.y + this.height >= game.height) {
+          this.y = game.height - this.height
+        }
+      }
+      if (this.direction.right) {
+        this.x += this.speed
+        if(this.x + this.width >= game.width) {
+          this.x = game.width - this.width
+        }
+      }
+    }
+
+    this.render = function () {
+      ctx.fillStyle = this.color
+      ctx.fillRect(this.x, this.y, this.width, this.height)
+  }
+}
+}
+const player = new Hero (10, 10 ,16, 16, 'lightsteelblue')
+const ogre = new Ogre (200, 60, 32, 48, '#bada55')
 
 //player.render()
 //ogre.render()
 
 
 // MOVEMENT HANDLER //
-// tells our code how and when to move our player around
-// tied to an event listener for key events
-const movementHandler = (e) => {
-  // here the e stands for 'event' -> specifically will be a keydown
-  // were going to use keycodes to tell it to do different movements for diff keys
-  // here are some basic key codes:
-  // w = 87, a = 65, s = 83, d = 68
-  // up = 38, left = 37, down = 40, right = 39
-  // by linking these keycodes to a function (codeblock)
-  // we can tell them to change the player x or y values
-  //console.log('what is e?\n', e.keyCode)
-  // conditional statements if keycode === something do something if keycode === somethingELse do somethingELse
-  // could build giant if else for this
-  // im going to use switch case instead
-  //switch is my condition, opens up multitude of cases
-  switch (e.keyCode) {
-    //move up
-    case (87):
-    case (38):
-      //moves player up 10px every press
-      player.y  -= 10
-      // need the break keyword so we can move to another case if necessary
-      break
-    //move left
-    case (65):
-    case (37):
-      player.x -= 10
-      break
-    //move down
-    case (83):
-    case (40):
-      player.y +=10
-      break
-    //move right
-    case (68):
-    case (39):
-      player.x += 10
-      break
-  }
-}
+
 
 // COLLISION DETECTION//
 // here, well detect a hit between entities
@@ -168,22 +177,38 @@ const gameLoop = () => {
   // then instead of drawing a snake because its maintaning all the old     positions of our character
   // well just see our player square moving
   ctx.clearRect(0, 0, game.width, game.height)
-  
-  player.render()
-  movement.textContent = `${player.x}, ${player.y}`
 
   if (ogre.alive) {
       ogre.render()
   }
+
+player.render() 
+player.movePlayer()
+movement.textContent = `${player.x}, ${player.y}`
 }
 
+// EVENT LISTENERS //
 
+// one key event for a keydown
+// keydown will set players direction
+document.addEventListener('keydown', (e) => {
+  //when a key is pressed, set approp direc
+  player.setDirection(e.key)
+})
+//one key event for a keyup
+// keyup will unset direction
+document.addEventListener('keyup', (e) => {
+  // when a key is release , call undirection
+  //this is handled in a slightly different way
+  if(['w', 'a', 's', 'd'].includes(e.key)) {
+    player.unsetDirection(e.key)
+  }
+})
 
 // here well add event listener, when DOM content loads, run the game on an intervcal
 // eventually this event will have more in it
 document.addEventListener('DOMContentLoaded', function() {
-  // this is where ill link up the movementHandler event
-  document.addEventListener('keydown', movementHandler)
+  
   // here is our gameloop interval
   setInterval(gameLoop, 60)
 })
