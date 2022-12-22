@@ -80,8 +80,8 @@ class Crawler {
 const player = new Crawler (10, 10 ,16, 16, 'lightsteelblue')
 const ogre = new Crawler (200, 60, 32, 48, '#bada55')
 
-// player.render()
-// ogre.render()
+//player.render()
+//ogre.render()
 
 
 // MOVEMENT HANDLER //
@@ -137,12 +137,14 @@ const detectHit = () => {
     && player.x + player.width > ogre.x
     && player.y < ogre.y + ogre.height
     && player.y + player.height > ogre.y) {
-      console.log('HIT!')
-      console.log('player x-> ', player.x)
-      console.log('player y-> ', player.y)
-      console.log('ogre x -> ', ogre.x)
-      console.log('ogre y -> ', ogre.y)
-      status.textContent = 'We have a hit!'
+      // console.log('HIT!')
+      // console.log('player x-> ', player.x)
+      // console.log('player y-> ', player.y)
+      // console.log('ogre x -> ', ogre.x)
+      // console.log('ogre y -> ', ogre.y)
+      // status.textContent = 'We have a hit!'
+      ogre.alive = false
+      status.textContent = 'YOU WIN!'
     }
 }
 
@@ -158,7 +160,10 @@ const gameLoop = () => {
   // no console logs
   //console.log('the game is running')
   //for testing, its ok to have them, final product shouyld not have them
-  // 
+  // putting our hit detection at the top so it takes precedent
+  if (ogre.alive) {
+    detectHit()
+  }
   // to reseble movement, we should clear the old canvas every loop
   // then instead of drawing a snake because its maintaning all the old     positions of our character
   // well just see our player square moving
