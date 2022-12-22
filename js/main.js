@@ -125,8 +125,14 @@ class Hero {
   }
 }
 }
+
+const getRandomCoordinates = (max) => {
+  // use math.random to get random number
+  return Math.floor(Math.random() * max)
+}
 const player = new Hero (10, 10 ,16, 16, 'lightsteelblue')
-const ogre = new Ogre (200, 60, 32, 48, '#bada55')
+const ogre = new Ogre (200, 50, 32, 48, '#bada55')
+const ogre2 = new Ogre (getRandomCoordinates(game.width), getRandomCoordinates(game.height), 64, 96, 'red')
 
 //player.render()
 //ogre.render()
@@ -140,20 +146,14 @@ const ogre = new Ogre (200, 60, 32, 48, '#bada55')
 // to accurately do this, we need to account for for the entire space that one entity takes up
 // this means using the player x, y, width and height
 // this also means using the ogre x, y, w, h
-const detectHit = () => {
+const detectHit = (thing) => {
   // well basically use a big if statement, to be abkle to tell if any of the sides of our hero interact with any of the sides of our ogre
-  if (player.x < ogre.x + ogre.width
-    && player.x + player.width > ogre.x
-    && player.y < ogre.y + ogre.height
-    && player.y + player.height > ogre.y) {
-      // console.log('HIT!')
-      // console.log('player x-> ', player.x)
-      // console.log('player y-> ', player.y)
-      // console.log('ogre x -> ', ogre.x)
-      // console.log('ogre y -> ', ogre.y)
-      // status.textContent = 'We have a hit!'
-      ogre.alive = false
-      status.textContent = 'YOU WIN!'
+  if (player.x < thing.x + thing.width
+      && player.x + player.width > thing.x
+      && player.y < thing.y + thing.height
+      && player.y + player.height > thing.y) {
+        console.log('HIT!')
+        thing.alive = false
     }
 }
 
@@ -170,18 +170,22 @@ const gameLoop = () => {
   //console.log('the game is running')
   //for testing, its ok to have them, final product shouyld not have them
   // putting our hit detection at the top so it takes precedent
-  if (ogre.alive) {
-    detectHit()
-  }
   // to reseble movement, we should clear the old canvas every loop
   // then instead of drawing a snake because its maintaning all the old     positions of our character
   // well just see our player square moving
   ctx.clearRect(0, 0, game.width, game.height)
-
   if (ogre.alive) {
       ogre.render()
+      detectHit(ogre)
+  } else if (ogre2.alive) {
+    status.textContent ='Now kill Ogre 2'
+    ogre2.render()
+    detectHit(ogre2)
+  } else {
+    status.textContent = 'YOU WIN!'
+    stopGameLoop()
   }
-
+  
 player.render() 
 player.movePlayer()
 movement.textContent = `${player.x}, ${player.y}`
@@ -205,10 +209,17 @@ document.addEventListener('keyup', (e) => {
   }
 })
 
+// were going to save our game interval to a variable so we can stop it when we want to
+// this interval runs the game every 60 ms until we tell it to stop
+const gameInterval = setInterval(gameLoop, 60)
+// fn that stops the game loop 
+const stopGameLoop = () => {
+  clearInterval(gameInterval)
+}
+
 // here well add event listener, when DOM content loads, run the game on an intervcal
 // eventually this event will have more in it
 document.addEventListener('DOMContentLoaded', function() {
   
   // here is our gameloop interval
-  setInterval(gameLoop, 60)
 })
